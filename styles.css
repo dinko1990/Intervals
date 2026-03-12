@@ -1,0 +1,184 @@
+:root {
+  --bg: #0f1220;
+  --card: rgba(255, 255, 255, 0.12);
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.78);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  --radius: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, Arial, sans-serif;
+  color: var(--text);
+  background: linear-gradient(135deg, #1f2540, #0f1220);
+  transition: background 0.25s ease;
+}
+
+body.screen-active {
+  background: linear-gradient(135deg, #1fa64d, #0b6b2c);
+}
+
+body.screen-pause {
+  background: linear-gradient(135deg, #7e4dff, #4d23b8);
+}
+
+body.screen-rest {
+  background: linear-gradient(135deg, #f44336, #aa1d13);
+}
+
+body.screen-countdown {
+  background: linear-gradient(135deg, #f7c845, #d39c00);
+}
+
+body.screen-setup,
+body.screen-finished {
+  background: linear-gradient(135deg, #1f2540, #0f1220);
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(14px);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.panel h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  margin: 6px 0 18px;
+  color: var(--muted);
+}
+
+.controls {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+label span {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+input,
+.toggle-btn,
+.primary-btn,
+.secondary-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 1rem;
+}
+
+input {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+.toggle-row {
+  align-items: end;
+}
+
+.toggle-btn,
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.primary-btn {
+  background: #ffffff;
+  color: #111;
+  font-size: 1.3rem;
+  font-weight: 800;
+  min-height: 72px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.display {
+  display: grid;
+  gap: 14px;
+  align-content: center;
+  text-align: center;
+}
+
+.phase-badge {
+  justify-self: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+}
+
+.timer {
+  font-size: clamp(3rem, 16vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.set-line {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.status {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.params {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.params span {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 10px;
+  border-radius: 14px;
+}
+
+@media (min-width: 760px) {
+  .app {
+    grid-template-columns: 380px 1fr;
+    align-items: stretch;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .display {
+    min-height: calc(100vh - 48px);
+  }
+}

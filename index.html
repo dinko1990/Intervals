@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intervals Sets</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="screen-setup">
+  <main class="app">
+    <section class="panel card">
+      <h1>Intervals Sets</h1>
+      <p class="subtitle">Simple interval timer</p>
+
+      <div class="controls">
+        <label>
+          <span>Active (sec)</span>
+          <input id="activeInput" type="number" min="1" value="15" />
+        </label>
+
+        <label>
+          <span>Pause (sec)</span>
+          <input id="pauseInput" type="number" min="0" value="10" />
+        </label>
+
+        <label>
+          <span>Sets</span>
+          <input id="setsInput" type="number" min="1" value="10" />
+        </label>
+
+        <label>
+          <span>Rest (sec)</span>
+          <input id="restInput" type="number" min="1" value="60" />
+        </label>
+
+        <label class="toggle-row">
+          <span>Beep alert</span>
+          <button id="soundToggle" class="toggle-btn" type="button" aria-pressed="true">Beep: ON</button>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="startBtn" class="primary-btn" type="button">Start</button>
+        <button id="resetBtn" class="secondary-btn" type="button">Reset</button>
+      </div>
+    </section>
+
+    <section class="display card">
+      <div class="phase-badge" id="phaseLabel">Ready</div>
+      <div class="timer" id="timerDisplay">00:00</div>
+      <div class="set-line" id="setDisplay">Set 0 / 10</div>
+      <div class="status" id="statusText">Set your parameters and press Start</div>
+
+      <div class="params" id="paramsSummary">
+        <span>Active: 15s</span>
+        <span>Pause: 10s</span>
+        <span>Sets: 10</span>
+        <span>Rest: 60s</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
