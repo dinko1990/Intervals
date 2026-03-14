@@ -1,7 +1,8 @@
 const defaults = {
-  active: 15,
-  pause: 10,
-  sets: 10,
+  active: 10,
+  pause: 15,
+  reps: 10,
+  sets: 3,
   rest: 60,
 };
 
@@ -9,6 +10,7 @@ const els = {
   body: document.body,
   activeInput: document.getElementById('activeInput'),
   pauseInput: document.getElementById('pauseInput'),
+  repsInput: document.getElementById('repsInput'),
   setsInput: document.getElementById('setsInput'),
   restInput: document.getElementById('restInput'),
   soundToggle: document.getElementById('soundToggle'),
@@ -16,6 +18,7 @@ const els = {
   resetBtn: document.getElementById('resetBtn'),
   phaseLabel: document.getElementById('phaseLabel'),
   timerDisplay: document.getElementById('timerDisplay'),
+  repDisplay: document.getElementById('repDisplay'),
   setDisplay: document.getElementById('setDisplay'),
   statusText: document.getElementById('statusText'),
   paramsSummary: document.getElementById('paramsSummary'),
@@ -23,7 +26,9 @@ const els = {
 
 let soundOn = true;
 let timerId = null;
+let currentRep = 0;
 let currentSet = 0;
+let totalReps = defaults.reps;
 let totalSets = defaults.sets;
 let runConfig = { ...defaults };
 let isRunning = false;
@@ -34,11 +39,14 @@ function updateSummary() {
   els.paramsSummary.innerHTML = `
     <span>Active: ${cfg.active}s</span>
     <span>Pause: ${cfg.pause}s</span>
+    <span>Reps: ${cfg.reps}</span>
     <span>Sets: ${cfg.sets}</span>
-    <span>Rest: ${cfg.rest}s</span>
+    <span>Rest between sets: ${cfg.rest}s</span>
   `;
   if (!isRunning) {
+    totalReps = cfg.reps;
     totalSets = cfg.sets;
+    els.repDisplay.textContent = `Rep 0 / ${cfg.reps}`;
     els.setDisplay.textContent = `Set 0 / ${cfg.sets}`;
   }
 }
@@ -47,6 +55,7 @@ function getConfig() {
   return {
     active: Math.max(1, Number(els.activeInput.value) || defaults.active),
     pause: Math.max(0, Number(els.pauseInput.value) || defaults.pause),
+reps: Math.max(1, Number(els.repsInput.value) || defaults.reps),
     sets: Math.max(1, Number(els.setsInput.value) || defaults.sets),
     rest: Math.max(1, Number(els.restInput.value) || defaults.rest),
   };
@@ -62,9 +71,10 @@ function setScreen(type) {
   els.body.className = `screen-${type}`;
 }
 
-function updateDisplay({ phase, seconds, status, setNumber = currentSet }) {
+function updateDisplay({ phase, seconds, status, repNumber = currentRep, setNumber = currentSet }) {
   els.phaseLabel.textContent = phase;
   els.timerDisplay.textContent = formatTime(seconds);
+  els.repDisplay.textContent = `Rep ${repNumber} / ${totalReps}`;
   els.setDisplay.textContent = `Set ${setNumber} / ${totalSets}`;
   els.statusText.textContent = status;
 }
@@ -100,8 +110,10 @@ function clearCurrentTimer() {
 function resetApp() {
   clearCurrentTimer();
   isRunning = false;
+  currentRep = 0;
   currentSet = 0;
   runConfig = { ...getConfig() };
+  totalReps = runConfig.reps;
   totalSets = runConfig.sets;
   setScreen('setup');
   updateSummary();
@@ -109,16 +121,17 @@ function resetApp() {
     phase: 'Ready',
     seconds: 0,
     status: 'Set your parameters and press Start',
+    repNumber: 0,
     setNumber: 0,
   });
   els.startBtn.textContent = 'Start';
 }
 
-function runPhase(name, seconds, screenType, status, setNumber) {
+function runPhase(name, seconds, screenType, status, repNumber, setNumber) {
   return new Promise((resolve) => {
     let timeLeft = seconds;
     setScreen(screenType);
-    updateDisplay({ phase: name, seconds: timeLeft, status, setNumber });
+    updateDisplay({ phase: name, seconds: timeLeft, status, repNumber, setNumber });
 
     if (timeLeft <= 0) {
       resolve();
@@ -128,7 +141,7 @@ function runPhase(name, seconds, screenType, status, setNumber) {
     timerId = setInterval(() => {
       timeLeft -= 1;
       if (timeLeft > 0 && timeLeft <= 3) beep(90, 980, 0.025);
-      updateDisplay({ phase: name, seconds: timeLeft, status, setNumber });
+      updateDisplay({ phase: name, seconds: timeLeft, status, repNumber, setNumber });
 
       if (timeLeft <= 0) {
         clearCurrentTimer();
@@ -146,6 +159,7 @@ async function runStartCountdown() {
       phase: 'Get Ready',
       seconds: n,
       status: `Starting in ${n}...`,
+      repNumber: 0,
       setNumber: 0,
     });
     beep(100, 700 + (5 - n) * 50, 0.025);
@@ -159,6 +173,7 @@ async function startWorkout() {
   if (isRunning) return;
   isRunning = true;
   runConfig = { ...getConfig() };
+  totalReps = runConfig.reps;
   totalSets = runConfig.sets;
   els.startBtn.textContent = 'Running';
   updateSummary();
@@ -167,21 +182,27 @@ async function startWorkout() {
     await runStartCountdown();
 
     for (currentSet = 1; currentSet <= runConfig.sets; currentSet += 1) {
-      await runPhase('Active', runConfig.active, 'active', 'Work', currentSet);
+      for (currentRep = 1; currentRep <= runConfig.reps; currentRep += 1) {
+        await runPhase('Active', runConfig.active, 'active', 'Work', currentRep, currentSet);
+
+        const isLastRepInSet = currentRep === runConfig.reps;
+        if (!isLastRepInSet && runConfig.pause > 0) {
+          await runPhase('Pause', runConfig.pause, 'pause', 'Pause', currentRep, currentSet);
+        }
+      }
 
       const isLastSet = currentSet === runConfig.sets;
-      if (!isLastSet && runConfig.pause > 0) {
-        await runPhase('Pause', runConfig.pause, 'pause', 'Short pause', currentSet);
+      if (!isLastSet) {
+        await runPhase('Rest', runConfig.rest, 'rest', 'Rest between sets', runConfig.reps, currentSet);
       }
     }
-
-    await runPhase('Rest', runConfig.rest, 'rest', 'Final rest', runConfig.sets);
 
     setScreen('finished');
     updateDisplay({
       phase: 'Done',
       seconds: 0,
       status: 'Workout complete',
+      repNumber: runConfig.reps,
       setNumber: runConfig.sets,
     });
     beep(320, 520, 0.05);
@@ -199,7 +220,7 @@ els.soundToggle.addEventListener('click', () => {
   els.soundToggle.setAttribute('aria-pressed', String(soundOn));
 });
 
-[els.activeInput, els.pauseInput, els.setsInput, els.restInput].forEach((input) => {
+[els.activeInput, els.pauseInput, els.repsInput, els.setsInput, els.restInput].forEach((input) => {
   input.addEventListener('input', updateSummary);
 });
 
